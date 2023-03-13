@@ -1,14 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import  HTTPBasic, OAuth2PasswordBearer,HTTPBasicCredentials,OAuth2PasswordRequestForm
+from fastapi.security import  HTTPBasic, HTTPBearer,HTTPBasicCredentials,OAuth2PasswordRequestForm
 from typing import Optional
 from jose import jwt
 import datetime
 
-
-
 app = FastAPI()
 
-oauth2 = OAuth2PasswordBearer(tokenUrl='token',auto_error=False)
+oauth2 = HTTPBearer(auto_error=False)
 security = HTTPBasic(auto_error=False)
 
 def basic_auth(credentials: Optional[HTTPBasicCredentials] = Depends(security)):
@@ -17,10 +15,9 @@ def basic_auth(credentials: Optional[HTTPBasicCredentials] = Depends(security)):
     except:
         return None
 
-# def bearer_auth(token:Optional[str] = Header() ):
 def bearer_auth(token:Optional[str] =Depends(oauth2)):
     try:
-        decode = jwt.decode(token, "secret", algorithms=["HS256"])
+        decode = jwt.decode(token.credentials, "secret", algorithms=["HS256"])
         return decode
     except:
         return None
@@ -35,10 +32,15 @@ def get_type_auth(
         credentials:Optional[HTTPBasicCredentials] = Depends(basic_auth),
         ):
     if token is not None:
+        print('3')
+        print(token, 'get_type')
         return token
     if credentials is not None:
+        print('3')
+        print(credentials, 'get_type')
         return credentials
     raise HTTPException(status_code=401, detail="No autenticado")
+
 
 
 @app.get("/")
